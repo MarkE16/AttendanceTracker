@@ -1,4 +1,5 @@
 import vikeReact from "vike-react/config";
+import vikeReactQuery from "vike-react-query/config";
 import type { Config } from "vike/types";
 import Layout from "../layouts/LayoutDefault.js";
 
@@ -13,5 +14,5 @@ export default {
   title: "My Vike App",
   description: "Demo showcasing Vike",
 
-  extends: vikeReact,
+  extends: [vikeReact, vikeReactQuery],
 } satisfies Config;
