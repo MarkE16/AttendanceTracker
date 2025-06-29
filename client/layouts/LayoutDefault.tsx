@@ -49,18 +49,23 @@ export default function LayoutDefault({ children }: { children: React.ReactNode 
 
     await createEvent(formData);
     setOpen(false);
+
+    if (window.location.href === "/") {
+      window.location.reload();
+    } else {
+      window.location.href = "/";
+    }
   }
 
   return (
     <div className={"flex max-w-5xl m-auto"}>
       <Sidebar>
         <Logo />
-        <Link href="/">Welcome</Link>
+        <Link href="/">Home</Link>
         <Link href="/todo">Todo</Link>
-        <button></button>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger className={"text-blue-500 hover:underline"}>
-            <button>New Event</button>
+            <button className="cursor-pointer text-black p-0">New Event</button>
           </DialogTrigger>
           <DialogContent>
             <form onSubmit={handleSubmit}>
@@ -87,7 +92,6 @@ export default function LayoutDefault({ children }: { children: React.ReactNode 
             </form>
           </DialogContent>
         </Dialog>
-        <Link href="/star-wars">Data Fetching</Link>
       </Sidebar>
       <Content>{children}</Content>
     </div>

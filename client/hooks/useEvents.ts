@@ -1,11 +1,12 @@
 import { API_URL } from "@/lib/constants";
 import { useQuery } from "@tanstack/react-query";
+import { Event } from "@/types";
 
-export default function useEvents(userId: string) {
-  return useQuery({
-    queryKey: ["events", userId],
+export default function useEvents() {
+  return useQuery<Event[]>({
+    queryKey: ["events"],
     queryFn: async function() {
-      const response = await fetch(`${API_URL}/events/${userId}`, {
+      const response = await fetch(`${API_URL}/events/`, {
         credentials: "include",
       });
 
