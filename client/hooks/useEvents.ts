@@ -1,12 +1,13 @@
 import { API_URL } from "@/lib/constants";
 import { useQuery } from "@tanstack/react-query";
-import { Event } from "@/types";
+import { Event, EventPayload } from "@/types";
+import { fetchWithAuth } from "@/lib/utils";
 
 export default function useEvents() {
   return useQuery<Event[]>({
     queryKey: ["events"],
     queryFn: async function() {
-      const response = await fetch(`${API_URL}/events/`, {
+      const response = await fetchWithAuth(`${API_URL}/events/`, {
         credentials: "include",
       });
 
@@ -15,7 +16,9 @@ export default function useEvents() {
         throw new Error(`Failed to fetch events: ${errorText}`);
       }
 
-      return response.json();
+      const events = await response.json() as EventPayload[];
+      
+      return events.map(ev => ({ ...ev, maxAttendees: ev.max_attendees })); // convert snake_case to camelCase
     }
   });
 }

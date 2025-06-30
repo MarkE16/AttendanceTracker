@@ -18,6 +18,9 @@ import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
 import { FormEvent, useState } from "react";
 import { API_URL } from "@/lib/constants";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { fetchWithAuth } from "@/lib/utils";
 
 export default function LayoutDefault({ children }: { children: React.ReactNode }) {
   const {
@@ -26,7 +29,7 @@ export default function LayoutDefault({ children }: { children: React.ReactNode 
     error,
   } = useMutation<void, Error, FormData>({
     mutationFn: async function (form) {
-      const response = await fetch(`${API_URL}/events/new`, {
+      const response = await fetchWithAuth(`${API_URL}/events/new`, {
         method: "POST",
         body: form,
         credentials: "include",
@@ -41,11 +44,12 @@ export default function LayoutDefault({ children }: { children: React.ReactNode 
     },
   });
   const [open, setOpen] = useState<boolean>(false);
+  const [date, setDate] = useState<Date | undefined>(undefined);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const title = formData.get("title") as string;
+    formData.set("date", date?.toDateString() || new Date().toDateString());
 
     await createEvent(formData);
     setOpen(false);
@@ -79,7 +83,41 @@ export default function LayoutDefault({ children }: { children: React.ReactNode 
               </DialogHeader>
               <div>
                 <label htmlFor="title">Title</label>
-                <Input id="title" name="title" className={"w-full"} placeholder="Event Title" />
+                <Input id="title" name="title" className="w-full" placeholder="Event Title" required />
+                <label htmlFor="description">Description</label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  className="w-full"
+                  placeholder="Event Description"
+                  required
+                />
+
+                <div className="w-full grid-cols-2 grid gap-4 mt-4">
+                  <div>
+                    <label htmlFor="date">Date</label>
+                    <Calendar id="date" mode="single" selected={date} onSelect={setDate} />
+                  </div>
+                  <div>
+                    <label htmlFor="time">Time</label>
+                    <Input id="time" name="time" type="time" placeholder="HH:MM" required />
+
+                    <label htmlFor="location">Location</label>
+                    <Input id="location" name="location" className="w-full" placeholder="Event Location" required />
+
+                    <label htmlFor="max-attendees">Max Attendees</label>
+                    <Input
+                      id="max-attendees"
+                      name="max-attendees"
+                      type="number"
+                      className="w-full"
+                      placeholder="Max Attendees"
+                      min={1}
+                      defaultValue={10}
+                      required
+                    />
+                  </div>
+                </div>
               </div>
               <DialogFooter>
                 <DialogClose>
