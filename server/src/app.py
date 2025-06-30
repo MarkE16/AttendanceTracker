@@ -1,9 +1,11 @@
 from flask import Flask
-# from flask_cors import CORS
+from flask_cors import CORS
 from .utils import register_blueprints
 from .database import init_db
 
 app = Flask(__name__)
+# in a real app, this should be more restrictive.
+CORS(app, resources={r'/*': { "origins": "http://localhost:3000" } }, supports_credentials=True)
 register_blueprints(app)
 try:
     init_db()

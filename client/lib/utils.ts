@@ -19,9 +19,9 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
     credentials: "include", // Include cookies for authentication
   });
 
-  if (!response.ok) {
+  if (!response.ok && response.status === 401) {
     // Attempt to refresh the session
-    const refreshResponse = await fetch(`${API_URL}/auth/refresh`, {
+    await fetch(`${API_URL}/auth/refresh`, {
       method: "POST",
       credentials: "include",
     });

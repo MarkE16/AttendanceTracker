@@ -105,10 +105,10 @@ export default function LayoutDefault({ children }: { children: React.ReactNode 
                     <label htmlFor="location">Location</label>
                     <Input id="location" name="location" className="w-full" placeholder="Event Location" required />
 
-                    <label htmlFor="max-attendees">Max Attendees</label>
+                    <label htmlFor="max_attendees">Max Attendees</label>
                     <Input
-                      id="max-attendees"
-                      name="max-attendees"
+                      id="max_attendees"
+                      name="max_attendees"
                       type="number"
                       className="w-full"
                       placeholder="Max Attendees"

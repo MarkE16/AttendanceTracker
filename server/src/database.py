@@ -20,4 +20,5 @@ session = scoped_session(sessionmaker(bind=engine))
 
 def init_db():
     from .models.Event import Event
+    from .models.User import User
     Base.metadata.create_all(engine)
