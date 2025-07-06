@@ -2,6 +2,8 @@ FROM node:20-alpine AS base
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ARG PUBLIC_ENV__BACKEND_URL=http://localhost:5000
+ENV PUBLIC_ENV__BACKEND_URL=$PUBLIC_ENV__BACKEND_URL
 
 RUN corepack enable && corepack prepare pnpm@10.11.0 --activate
 

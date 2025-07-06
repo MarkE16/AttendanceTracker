@@ -5,7 +5,8 @@ export default function Page() {
   const { data: events = [], isPending, error } = useEvents();
 
   if (error) {
-    return <div className="text-red-500">Error loading events: {error.message}</div>;
+    let message = error.code === 401 ? "Auth session invalid. Please log in again." : error.message;
+    return <div className="text-red-500">Error loading events: {message}</div>;
   }
 
   if (isPending) {

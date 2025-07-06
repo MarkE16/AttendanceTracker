@@ -1,5 +1,6 @@
 from ..database import Base
-from sqlalchemy import Column, UUID, String, Integer, Date
+from sqlalchemy import Column, UUID, String, Integer, Date, ForeignKey
+from sqlalchemy.orm import relationship
 from uuid import uuid4
 from dataclasses import dataclass
 
@@ -8,13 +9,16 @@ class Event(Base):
     __tablename__ = 'Event'
 
     id: str = Column(UUID(), primary_key=True, default=uuid4)
-    user_id: str = Column(UUID(), nullable=False)
+    user_id: str = Column(UUID(), ForeignKey('User.id', ondelete='CASCADE'), nullable=False)
     title: str = Column(String(), nullable=False)
     description: str = Column(String(200), nullable=False)
     date: str = Column(Date(), nullable=False)
     time: str = Column(String(5), nullable=False)
     location: str = Column(String(100), nullable=False)
     max_attendees: int = Column(Integer, default=1, nullable=False)
+    
+    user = relationship("User", back_populates="events")
+    attendees = relationship("Attendee", back_populates="event")
 
     def __init__(
         self,

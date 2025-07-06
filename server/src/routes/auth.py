@@ -5,6 +5,8 @@ from flask import (
 )
 from typing import Tuple
 
+from ..routes.decorators import token_required
+
 from ..models.User import User
 from ..database import session
 from bcrypt import hashpw, checkpw, gensalt
@@ -108,3 +110,17 @@ def logout() -> Tuple[Response, int]:
     res.set_cookie('at-refresh-token', "", expires=0)
 
     return res
+
+@bp.route('/me', methods=('GET',))
+@token_required
+def me(current_user) -> Tuple[Response, int]:
+    if not current_user:
+        return jsonify("User not found."), 404
+
+    user_data = {
+        "id": str(current_user.id),
+        "name": current_user.name,
+        "email": current_user.email
+    }
+
+    return jsonify(user_data), 200

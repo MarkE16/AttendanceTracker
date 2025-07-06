@@ -21,6 +21,7 @@ import { API_URL } from "@/lib/constants";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { fetchWithAuth } from "@/lib/utils";
+import { AuthContextProvider } from "@/context/AuthContext";
 
 export default function LayoutDefault({ children }: { children: React.ReactNode }) {
   const {
@@ -61,12 +62,30 @@ export default function LayoutDefault({ children }: { children: React.ReactNode 
     }
   }
 
+  async function handleLogout() {
+    const response = await fetch(`${API_URL}/auth/logout`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Logout failed: ${errorText}`);
+    }
+
+    window.location.href = "/";
+  }
+
   return (
     <div className={"flex max-w-5xl m-auto"}>
       <Sidebar>
         <Logo />
         <Link href="/">Home</Link>
-        <Link href="/todo">Todo</Link>
+        <Link href="/signin">Sign In</Link>
+        <hr className="mt-1 mb-1" />
+        <button className="cursor-pointer text-black p-0" onClick={handleLogout}>
+          Logout
+        </button>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger className={"text-blue-500 hover:underline"}>
             <button className="cursor-pointer text-black p-0">New Event</button>
@@ -146,9 +165,11 @@ function Sidebar({ children }: { children: React.ReactNode }) {
 
 function Content({ children }: { children: React.ReactNode }) {
   return (
-    <div id="page-container">
-      <div id="page-content" className={"p-5 pb-12 min-h-screen"}>
-        {children}
+    <div id="page-container" className={"w-full"}>
+      <div id="page-content" className={"p-5 pb-12 min-h-screen w-full"}>
+        <AuthContextProvider>
+          {children}
+        </AuthContextProvider>
       </div>
     </div>
   );

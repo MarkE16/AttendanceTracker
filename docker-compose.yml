@@ -6,28 +6,43 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile
+      args:
+        - PUBLIC_ENV__BACKEND_URL=http://localhost:5000
     ports:
       - "3000:3000"
+    networks:
+      - appnet
 
   backend:
     container_name: attendance_tracker_server
     build:
       context: ./server
       dockerfile: Dockerfile
+      args:
+        - APP_FRONTEND_URL=http://localhost:3000
     ports:
       - "5000:5000"
     depends_on:
-      - web
-
+      - db
+    networks:
+      - appnet
+    env_file:
+      - .env
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   db:
     container_name: postgres_db
     image: postgres:latest
     env_file:
       - .env
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     networks:
-      - db
+      - appnet
     restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -36,5 +51,5 @@ volumes:
   postgres_data:
 
 networks:
-  db:
+  appnet:
     driver: bridge
