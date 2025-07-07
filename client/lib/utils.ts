@@ -6,22 +6,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function format24HourTimeTo12Hour(time: string): string {
-  const [hours, minutes] = time.split(":").map(Number);
-  const period = hours >= 12 ? "PM" : "AM";
-  const adjustedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
-  return `${adjustedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
-}
+export function format12HourTimeTo24Hour(time: string): string {
+  const [timePart, modifier] = time.split(" ");
+  let [hours, minutes] = timePart.split(":").map(Number);
 
-/**
- * Formats a date string in the format YYYY-MM-DD to a more readable format like "Month Day, Year".
- * @param date A date string in the format YYYY-MM-DD. This will break for other formats.
- * @returns The new date.
- */
-export function formatDateToMonthDayYear(date: string): string {
-  const [year, month, day] = date.split("-");
-  
-  return `${month}-${day}-${year}`;
+  if (modifier === "PM" && hours < 12) {
+    hours += 12;
+  } else if (modifier === "AM" && hours === 12) {
+    hours = 0;
+  }
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {

@@ -3,8 +3,7 @@ export type Event = {
   user_id: string; // user ID of the event creator
   title: string;
   description: string;
-  date: string; // date string
-  time: string; // time string
+  meet_datetime: string; // ISO date string
   location: string;
   maxAttendees: number;
   attendeeCount: number; // current number of attendees

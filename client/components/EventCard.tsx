@@ -8,13 +8,19 @@ export default function EventCard({
   id,
   title,
   description,
-  date,
-  time,
+  meet_datetime,
   location,
   attendeeCount,
   maxAttendees,
 }: EventCardProps) {
-  console.log(date);
+  const date = new Date(meet_datetime);
+  const TIMEZONE = "UTC";
+  const time = date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: TIMEZONE,
+  });
+
   return (
     <div className="border p-4 rounded hover:shadow-lg transition-shadow duration-200 w-full mt-3  mb-3">
       <a href={`/event?id=${id}`}>
@@ -24,10 +30,12 @@ export default function EventCard({
 
       <div className="flex items-center">
         <Calendar className="size-5 inline-block text-gray-500 mr-1" />
-        <span className="text-gray-500 mr-2">{new Date(date).toLocaleDateString("en-US", { timeZone: "UTC" })}</span>
+        <span className="text-gray-500 mr-2">{date.toLocaleDateString()}</span>
 
         <Clock className="size-5 inline-block text-gray-500 mr-1" />
-        <span className="text-gray-500 mr-2">{format24HourTimeTo12Hour(time)}</span>
+        <span className="text-gray-500 mr-2">
+          {time} {TIMEZONE}
+        </span>
 
         <MapPin className="size-5 inline-block text-gray-500 mr-1" />
         <span className="text-gray-500 mr-2">{location}</span>

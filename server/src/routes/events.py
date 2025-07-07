@@ -29,8 +29,7 @@ def get_all(current_user) -> Tuple[Response, int]:
             'user_id': str(event.user_id),
             'title': event.title,
             'description': event.description,
-            'date': event.date.isoformat(),
-            'time': event.time,
+            'meet_datetime': event.meet_datetime,
             'location': event.location,
             'max_attendees': event.max_attendees,
             'attendee_count': attendee_count
@@ -59,8 +58,7 @@ def get(event_id: str) -> Tuple[Response, int]:
         'user_id': str(ev.user_id),
         'title': ev.title,
         'description': ev.description,
-        'date': ev.date.isoformat(),
-        'time': ev.time,
+        'meet_datetime': ev.meet_datetime,
         'location': ev.location,
         'max_attendees': ev.max_attendees,
         'attendee_count': attendee_count
@@ -88,13 +86,14 @@ def post(current_user) -> Tuple[Response, int]:
         max_attendees
     )):
         return jsonify("Not all fields were provided."), 400
+        
+    timezone = f"{date}T{time}:00Z"
 
     event = Event(
         title,
         current_user.id,
         description,
-        date,
-        time,
+        timezone,
         location,
         max_attendees=int(max_attendees) if max_attendees else 1
     )

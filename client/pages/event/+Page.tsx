@@ -3,7 +3,7 @@ import { useQueryParams } from "@/hooks/useQueryParams";
 import useEvent from "@/hooks/useEvent";
 import { Clock, MapPin, Users, Calendar as CaendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { fetchWithAuth, format24HourTimeTo12Hour, formatDateToMonthDayYear } from "@/lib/utils";
+import { fetchWithAuth, format12HourTimeTo24Hour } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -73,8 +73,7 @@ export default function Page() {
   const [editState, setEditState] = useState<Omit<Event, "id" | "user_id" | "attendeeCount">>({
     title: "",
     description: "",
-    date: "",
-    time: "12:00",
+    meet_datetime: "",
     location: "",
     maxAttendees: 0,
   });
@@ -85,12 +84,11 @@ export default function Page() {
       setEditState({
         title: data.title,
         description: data.description,
-        date: formatDateToMonthDayYear(data.date),
-        time: data.time,
+        meet_datetime: data.meet_datetime,
         location: data.location,
         maxAttendees: data.maxAttendees,
       });
-      setCalendarDate(new Date(formatDateToMonthDayYear(data.date)));
+      setCalendarDate(new Date(data.meet_datetime));
     }
   }, [data]);
 
@@ -113,9 +111,17 @@ export default function Page() {
     return <div className="text-red-500">Event not found.</div>;
   }
 
-  const { title, description, date, time, location, maxAttendees } = editState;
+  const { title, description, meet_datetime, location, maxAttendees } = editState;
   const attendeeCount = attendees.length;
   const owner_id = data.user_id;
+  const date = new Date(meet_datetime);
+  const TIMEZONE = "UTC";
+  const time = date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: TIMEZONE,
+  });
+  const formattedTime = format12HourTimeTo24Hour(time);
 
   async function toggleEditing() {
     if (editing) {
@@ -135,6 +141,11 @@ export default function Page() {
 
   function handleEditChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
+    
+    if (name === "time") {
+      //...
+    }
+    
     setEditState((prev) => ({
       ...prev,
       [name]: value,
@@ -190,7 +201,7 @@ export default function Page() {
           type="time"
           name="time"
           className="w-[30%] ml-2"
-          value={editState.time}
+          value={formattedTime}
           onChange={handleEditChange}
           disabled={isUpdating}
         />
@@ -236,10 +247,12 @@ export default function Page() {
     <>
       <div className="flex items-center">
         <CaendarIcon className="size-5 inline-block text-gray-500 mr-1" />
-        <span className="text-gray-500 mr-2">{new Date(date).toLocaleDateString()}</span>
+        <span className="text-gray-500 mr-2">{date.toLocaleDateString()}</span>
 
         <Clock className="size-5 inline-block text-gray-500 mr-1" />
-        <span className="text-gray-500 mr-2">{format24HourTimeTo12Hour(time)}</span>
+        <span className="text-gray-500 mr-2">
+          {time} {TIMEZONE}
+        </span>
 
         <MapPin className="size-5 inline-block text-gray-500 mr-1" />
         <span className="text-gray-500 mr-2">{location}</span>
