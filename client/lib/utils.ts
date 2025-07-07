@@ -13,6 +13,17 @@ export function format24HourTimeTo12Hour(time: string): string {
   return `${adjustedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
 }
 
+/**
+ * Formats a date string in the format YYYY-MM-DD to a more readable format like "Month Day, Year".
+ * @param date A date string in the format YYYY-MM-DD. This will break for other formats.
+ * @returns The new date.
+ */
+export function formatDateToMonthDayYear(date: string): string {
+  const [year, month, day] = date.split("-");
+  
+  return `${month}-${day}-${year}`;
+}
+
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const response = await fetch(url, {
     ...options,

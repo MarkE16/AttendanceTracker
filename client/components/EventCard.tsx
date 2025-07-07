@@ -14,6 +14,7 @@ export default function EventCard({
   attendeeCount,
   maxAttendees,
 }: EventCardProps) {
+  console.log(date);
   return (
     <div className="border p-4 rounded hover:shadow-lg transition-shadow duration-200 w-full mt-3  mb-3">
       <a href={`/event?id=${id}`}>
@@ -23,7 +24,7 @@ export default function EventCard({
 
       <div className="flex items-center">
         <Calendar className="size-5 inline-block text-gray-500 mr-1" />
-        <span className="text-gray-500 mr-2">{new Date(date).toLocaleDateString()}</span>
+        <span className="text-gray-500 mr-2">{new Date(date).toLocaleDateString("en-US", { timeZone: "UTC" })}</span>
 
         <Clock className="size-5 inline-block text-gray-500 mr-1" />
         <span className="text-gray-500 mr-2">{format24HourTimeTo12Hour(time)}</span>

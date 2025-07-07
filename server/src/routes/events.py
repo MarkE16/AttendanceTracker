@@ -18,7 +18,7 @@ def get_all(current_user) -> Tuple[Response, int]:
     ).filter_by(
         user_id=current_user.id
     ).outerjoin(
-    Attendee, Event.id == Attendee.event_id
+        Attendee, Event.id == Attendee.event_id
     ).group_by(
         Event
     ).all()
@@ -29,7 +29,7 @@ def get_all(current_user) -> Tuple[Response, int]:
             'user_id': str(event.user_id),
             'title': event.title,
             'description': event.description,
-            'date': event.date,
+            'date': event.date.isoformat(),
             'time': event.time,
             'location': event.location,
             'max_attendees': event.max_attendees,
@@ -59,7 +59,7 @@ def get(event_id: str) -> Tuple[Response, int]:
         'user_id': str(ev.user_id),
         'title': ev.title,
         'description': ev.description,
-        'date': ev.date,
+        'date': ev.date.isoformat(),
         'time': ev.time,
         'location': ev.location,
         'max_attendees': ev.max_attendees,
@@ -106,21 +106,59 @@ def post(current_user) -> Tuple[Response, int]:
 
 @bp.route('/<uuid:event_id>', methods=('PUT', 'DELETE'))
 @token_required
-def put(event_id: str) -> Tuple[Response, int]:
-    title = request.form.get('title')
+def put(event_id: str, current_user) -> Tuple[Response, int]:
+    title = request.json.get('title')
+    description = request.json.get('description')
+    date = request.json.get('date')
+    time = request.json.get('time')
+    location = request.json.get('location')
+    max_attendees = request.json.get('maxAttendees')
 
-    if not title and request.method != 'PUT':
-        return jsonify("Title not provided."), 400
+    if not any((
+        title,
+        description,
+        date,
+        time,
+        location,
+        max_attendees
+    )) and request.method == 'PUT':
+        return jsonify("Not all fields were provided."), 400
 
     if request.method == 'DELETE':
-        session.query(Event).filter(Event.id == event_id).delete()
+        session.query(Event).filter(
+            Event.id == event_id,
+            Event.user_id == current_user.id
+        ).delete()
     else:
-        event = session.query(Event).filter(Event.id == event_id).first()
+        event = session.query(
+            Event,
+            func.count(Event.attendees).label('attendee_count')
+        ).filter_by(
+            id=event_id,
+            user_id=current_user.id
+        ).outerjoin(
+            Attendee, Event.id == Attendee.event_id
+        ).group_by(
+            Event
+        ).first()
 
         if not event:
             return jsonify("Event not found."), 404
 
-        event.title = title
+        ev, attendee_count = event
+
+        if int(max_attendees) < attendee_count:
+            return jsonify("Cannot set max attendees to less than current attendees."), 400
+
+        if int(max_attendees) < 1:
+            return jsonify("Max attendees must be at least 1."), 400
+
+        ev.title = title
+        ev.description = description
+        ev.date = date
+        ev.time = time
+        ev.location = location
+        ev.max_attendees = int(max_attendees) if max_attendees else 1
     session.commit()
 
     message = "Event updated." if request.method == "PUT" else "Event deleted."

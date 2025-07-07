@@ -73,7 +73,7 @@ export default function LayoutDefault({ children }: { children: React.ReactNode 
       throw new Error(`Logout failed: ${errorText}`);
     }
 
-    window.location.href = "/";
+    window.location.href = "/signin";
   }
 
   return (
@@ -82,6 +82,7 @@ export default function LayoutDefault({ children }: { children: React.ReactNode 
         <Logo />
         <Link href="/">Home</Link>
         <Link href="/signin">Sign In</Link>
+        <Link href="/signup">Sign Up</Link>
         <hr className="mt-1 mb-1" />
         <button className="cursor-pointer text-black p-0" onClick={handleLogout}>
           Logout
@@ -167,9 +168,7 @@ function Content({ children }: { children: React.ReactNode }) {
   return (
     <div id="page-container" className={"w-full"}>
       <div id="page-content" className={"p-5 pb-12 min-h-screen w-full"}>
-        <AuthContextProvider>
-          {children}
-        </AuthContextProvider>
+        <AuthContextProvider>{children}</AuthContextProvider>
       </div>
     </div>
   );

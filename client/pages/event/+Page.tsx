@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { useQueryParams } from "@/hooks/useQueryParams";
 import useEvent from "@/hooks/useEvent";
 import { Clock, MapPin, Users, Calendar as CaendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { fetchWithAuth, format24HourTimeTo12Hour } from "@/lib/utils";
+import { fetchWithAuth, format24HourTimeTo12Hour, formatDateToMonthDayYear } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useMutation } from "@tanstack/react-query";
 import useAttendees from "@/hooks/useAttendees";
 import { API_URL } from "@/lib/constants";
+import { Event } from "@/types";
 
 export default function Page() {
   const params = useQueryParams();
@@ -43,9 +44,57 @@ export default function Page() {
       return response.json();
     },
   });
+  const { mutateAsync: updateEvent, isPending: isUpdating } = useMutation({
+    mutationFn: async function (eventData: Omit<Event, "id" | "user_id" | "attendeeCount">) {
+      if (!user || !id) {
+        throw new Error("User must be logged in to update the event.");
+      }
+
+      const response = await fetchWithAuth(`${API_URL}/events/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...eventData,
+          user_id: user.id,
+        }),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error("Failed to update the event: " + errorText);
+      }
+
+      return response.json();
+    },
+  });
+  const [editState, setEditState] = useState<Omit<Event, "id" | "user_id" | "attendeeCount">>({
+    title: "",
+    description: "",
+    date: "",
+    time: "12:00",
+    location: "",
+    maxAttendees: 0,
+  });
+  const [calendarDate, setCalendarDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
-    console.log(attendees);
+    if (data) {
+      setEditState({
+        title: data.title,
+        description: data.description,
+        date: formatDateToMonthDayYear(data.date),
+        time: data.time,
+        location: data.location,
+        maxAttendees: data.maxAttendees,
+      });
+      setCalendarDate(new Date(formatDateToMonthDayYear(data.date)));
+    }
+  }, [data]);
+
+  useEffect(() => {
     const s = new Set(attendees);
 
     setRsvp(s.has(user?.id || ""));
@@ -64,10 +113,48 @@ export default function Page() {
     return <div className="text-red-500">Event not found.</div>;
   }
 
-  const { title, description, date, time, location, attendeeCount, maxAttendees, user_id: owner_id } = data;
+  const { title, description, date, time, location, maxAttendees } = editState;
+  const attendeeCount = attendees.length;
+  const owner_id = data.user_id;
 
-  function toggleEditing() {
+  async function toggleEditing() {
+    if (editing) {
+      try {
+        await updateEvent({
+          ...editState,
+          date: calendarDate ? calendarDate.toISOString() : new Date().toISOString(),
+        });
+      } catch (error) {
+        console.error("Failed to update event:", error);
+        alert((error as Error).message);
+        return;
+      }
+    }
     setEditing((prev) => !prev);
+  }
+
+  function handleEditChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    const { name, value } = e.target;
+    setEditState((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
+  function onDateChange(date: Date | undefined) {
+    if (date) {
+      setCalendarDate(date);
+      setEditState((prev) => ({
+        ...prev,
+        date: date.toISOString().split("T")[0],
+      }));
+    } else {
+      setCalendarDate(undefined);
+      setEditState((prev) => ({
+        ...prev,
+        date: "",
+      }));
+    }
   }
 
   async function handleRSVP() {
@@ -88,38 +175,49 @@ export default function Page() {
     <>
       <div className="mb-2">
         <label>Event Date</label>
-        <Calendar className="mr-2 w-[30%]" />
+        <Calendar
+          className="mr-2 w-[30%]"
+          mode="single"
+          selected={calendarDate}
+          onSelect={onDateChange}
+          disabled={isUpdating}
+        />
 
-        <label className="ml-2">Event Time</label>
+        <label className="ml-2" htmlFor="time">
+          Event Time
+        </label>
         <Input
           type="time"
+          name="time"
           className="w-[30%] ml-2"
-          defaultValue={time}
-          onBlur={(e) => {
-            // Handle time update logic here
-            console.log("Updated time:", e.target.value);
-          }}
+          value={editState.time}
+          onChange={handleEditChange}
+          disabled={isUpdating}
         />
 
-        <label className="ml-2">Event Location</label>
+        <label className="ml-2" htmlFor="location">
+          Event Location
+        </label>
         <Input
+          type="text"
+          name="location"
           className="w-[30%] ml-2"
-          defaultValue={location}
-          onBlur={(e) => {
-            // Handle location update logic here
-            console.log("Updated location:", e.target.value);
-          }}
+          value={editState.location}
+          onChange={handleEditChange}
+          placeholder="Event Location"
+          disabled={isUpdating}
         />
 
-        <label className="ml-2">Max Attendees</label>
+        <label className="ml-2" htmlFor="maxAttendees">
+          Max Attendees
+        </label>
         <Input
           type="number"
+          name="maxAttendees"
           className="w-[30%] ml-2"
-          defaultValue={maxAttendees}
-          onBlur={(e) => {
-            // Handle max attendees update logic here
-            console.log("Updated max attendees:", e.target.value);
-          }}
+          value={editState.maxAttendees}
+          onChange={handleEditChange}
+          disabled={isUpdating}
         />
       </div>
 
@@ -128,11 +226,10 @@ export default function Page() {
         id="description"
         name="description"
         className="mb-2"
-        defaultValue={description}
-        onBlur={(e) => {
-          // Handle description update logic here
-          console.log("Updated description:", e.target.value);
-        }}
+        value={editState.description}
+        onChange={handleEditChange}
+        disabled={isUpdating}
+        placeholder="Event Description"
       />
     </>
   ) : (
@@ -164,18 +261,17 @@ export default function Page() {
           <Input
             className="mr-2"
             type="text"
-            defaultValue={title}
-            onBlur={(e) => {
-              // Handle title update logic here
-              console.log("Updated title:", e.target.value);
-            }}
+            name="title"
+            value={editState.title}
+            onChange={handleEditChange}
+            placeholder="Event Title"
           />
         ) : (
           <h1 className="font-bold text-3xl">{title}</h1>
         )}
 
         {user && user.id === owner_id ? (
-          <Button variant="outline" onClick={toggleEditing}>
+          <Button variant="outline" onClick={toggleEditing} disabled={isUpdating}>
             {editing ? "Save Changes" : "Edit Event"}
           </Button>
         ) : (
