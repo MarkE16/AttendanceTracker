@@ -128,7 +128,9 @@ export default function Page() {
       try {
         await updateEvent({
           ...editState,
-          date: calendarDate ? calendarDate.toISOString() : new Date().toISOString(),
+          meet_datetime: calendarDate
+            ? `${calendarDate.toISOString().split("T")[0]}T${formattedTime}:00Z`
+            : new Date().toISOString(),
         });
       } catch (error) {
         console.error("Failed to update event:", error);
@@ -141,11 +143,19 @@ export default function Page() {
 
   function handleEditChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
-    
+
     if (name === "time") {
-      //...
+      const dateTime = calendarDate || new Date();
+      const formattedDate = dateTime.toISOString().split("T")[0]; // Get YYYY-MM-DD format
+
+      setCalendarDate(dateTime);
+      setEditState((prev) => ({
+        ...prev,
+        meet_datetime: `${formattedDate}T${value}:00Z`,
+      }));
+      return;
     }
-    
+
     setEditState((prev) => ({
       ...prev,
       [name]: value,
@@ -155,15 +165,16 @@ export default function Page() {
   function onDateChange(date: Date | undefined) {
     if (date) {
       setCalendarDate(date);
+      const formattedDate = date.toISOString().split("T")[0]; // Get YYYY-MM-DD format
       setEditState((prev) => ({
         ...prev,
-        date: date.toISOString().split("T")[0],
+        meet_datetime: `${formattedDate}T${formattedTime}:00Z`,
       }));
     } else {
       setCalendarDate(undefined);
       setEditState((prev) => ({
         ...prev,
-        date: "",
+        meet_datetime: new Date().toISOString(),
       }));
     }
   }

@@ -108,16 +108,14 @@ def post(current_user) -> Tuple[Response, int]:
 def put(event_id: str, current_user) -> Tuple[Response, int]:
     title = request.json.get('title')
     description = request.json.get('description')
-    date = request.json.get('date')
-    time = request.json.get('time')
+    meet_datetime = request.json.get('meet_datetime')
     location = request.json.get('location')
     max_attendees = request.json.get('maxAttendees')
 
     if not any((
         title,
         description,
-        date,
-        time,
+        meet_datetime,
         location,
         max_attendees
     )) and request.method == 'PUT':
@@ -154,8 +152,7 @@ def put(event_id: str, current_user) -> Tuple[Response, int]:
 
         ev.title = title
         ev.description = description
-        ev.date = date
-        ev.time = time
+        ev.meet_datetime = meet_datetime
         ev.location = location
         ev.max_attendees = int(max_attendees) if max_attendees else 1
     session.commit()
