@@ -64,7 +64,12 @@ def login() -> Tuple[Response, int]:
         "name": user.name,
         "email": user.email
     })
-
+    
+    # In a real application, these cookies should be set with secure and same-site attributes.
+    # However, as this is not a real application, but rather a learning exercise, these attributes are omitted for simplicity.
+    # In production, the following lines would be:
+    # res.set_cookie('at-access-token', access_token, httponly=True, secure=True, samesite='Strict')
+    # res.set_cookie('at-refresh-token', refresh_token, httponly=True, secure=True, samesite='Strict')
     res.set_cookie('at-access-token', access_token, httponly=True)
     res.set_cookie('at-refresh-token', refresh_token, httponly=True)
 
