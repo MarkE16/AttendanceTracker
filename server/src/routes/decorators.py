@@ -22,6 +22,9 @@ def token_required(f):
         except:
             return jsonify("Token is invalid."), 401
 
+        if not user:
+            return jsonify("User not found."), 401
+
         return f(*args, current_user=user, **kwargs)
 
     return decorated

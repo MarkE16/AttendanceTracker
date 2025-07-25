@@ -86,7 +86,7 @@ def post(current_user) -> Tuple[Response, int]:
         max_attendees
     )):
         return jsonify("Not all fields were provided."), 400
-        
+
     timezone = f"{date}T{time}:00Z"
 
     event = Event(
@@ -207,3 +207,36 @@ def rsvp(event_id: str, current_user) -> Tuple[Response, int]:
     session.commit()
 
     return jsonify("RSVP updated."), 200
+
+@bp.route('/search', methods=('GET',))
+def search() -> Tuple[Response, int]:
+    query = request.args.get('query', '').strip()
+    if not query:
+        return jsonify("Query cannot be empty."), 400
+
+    events = session.query(
+        Event,
+        func.count(Attendee.id).label('attendee_count')
+    ).filter(
+        Event.title.ilike(f'%{query}%') | Event.description.ilike(f'%{query}%')
+    ).outerjoin(
+        Attendee, Event.id == Attendee.event_id
+    ).group_by(
+        Event
+    ).all()
+
+    result = [
+        {
+            'id': str(event.id),
+            'user_id': str(event.user_id),
+            'title': event.title,
+            'description': event.description,
+            'meet_datetime': event.meet_datetime,
+            'location': event.location,
+            'max_attendees': event.max_attendees,
+            'attendee_count': attendee_count
+        }
+        for event, attendee_count in events
+    ]
+
+    return jsonify(result), 200

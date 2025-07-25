@@ -18,8 +18,13 @@ Base = declarative_base()
 engine = create_engine(postgres_url)
 session = scoped_session(sessionmaker(bind=engine))
 
-def init_db():
+def init_db(app):
     from .models.Event import Event
     from .models.User import User
     from .models.Attendee import Attendee
+    
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        session.remove()
+    
     Base.metadata.create_all(engine)

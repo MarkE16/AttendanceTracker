@@ -11,9 +11,11 @@ FRONTEND_URL = os.environ.get('APP_FRONTEND_URL', 'http://localhost:3000')
 CORS(app, resources={r'/*': { "origins": FRONTEND_URL } }, supports_credentials=True)
 register_blueprints(app)
 try:
-    init_db()
+    init_db(app)
 except Exception as e:
     raise RuntimeError("Couldn't connect to Postgres Database. Reason: " + str(e))
+
+
 
 if __name__ == '__main__':
     # Start the app

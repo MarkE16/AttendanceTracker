@@ -32,11 +32,9 @@ export default function Page() {
 
     try {
       await signIn(formData);
-      // Redirect or show success message
-      window.location.href = "/home";
+      window.location.href = "/";
     } catch (error) {
       console.error("Sign in error:", error);
-      // Handle error (e.g., show error message)
     }
   }
 

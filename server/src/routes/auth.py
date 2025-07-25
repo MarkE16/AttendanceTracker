@@ -85,7 +85,7 @@ def refresh() -> Tuple[Response, int]:
     user_id = data.get('id')
     user = session.query(User).filter_by(id=user_id).first()
     if not user:
-        return jsonify("User not found."), 404
+        return jsonify("User not found."), 401
 
     # Issue new access token.
     access_token = jwt.encode({ "id": str(user.id), "exp": datetime.now(timezone.utc) + timedelta(hours=1) }, JWT_SECRET, algorithm="HS256")
@@ -114,9 +114,6 @@ def logout() -> Tuple[Response, int]:
 @bp.route('/me', methods=('GET',))
 @token_required
 def me(current_user) -> Tuple[Response, int]:
-    if not current_user:
-        return jsonify("User not found."), 404
-
     user_data = {
         "id": str(current_user.id),
         "name": current_user.name,

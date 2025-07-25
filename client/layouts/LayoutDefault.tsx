@@ -81,6 +81,7 @@ export default function LayoutDefault({ children }: { children: React.ReactNode 
       <Sidebar>
         <Logo />
         <Link href="/">Home</Link>
+        <Link href="/search">Search</Link>
         <Link href="/signin">Sign In</Link>
         <Link href="/signup">Sign Up</Link>
         <hr className="mt-1 mb-1" />
