@@ -2,6 +2,13 @@
 
 This repository the implementation of AttendanceTracker, a web application designed to manage attendance data for events. The application consists of a frontend built with React and a backend server built with Python and Flask. This small project is intended as a practice project to enhance skills in web development, RESTful APIs, and database management.
 
+## Technologies Used
+- **Frontend**: React, TypeScript, Tailwind CSS
+- **Backend**: Python, Flask, SQLAlchemy
+- **Database**: PostgreSQL
+- **Authentication**: JWT (JSON Web Tokens)
+- **Containerization**: Docker, Docker Compose
+
 ## How to Run
 
 ### Prerequisites
